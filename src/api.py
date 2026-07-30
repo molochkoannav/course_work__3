@@ -29,6 +29,7 @@ class ApiBBox(BaseApi):
         }
 
     def get_response(self):
+        """Получаем данные о координатах стран"""
         countries = self.countries
         data_cords = []
         for country in countries:
@@ -42,6 +43,7 @@ class ApiBBox(BaseApi):
         return data_cords
 
     def get_data(self):
+        """Из данных достаем только координаты стран"""
         all_bboxes = []
         responses = self.get_response()
         for response in responses:
@@ -55,6 +57,7 @@ class ApiAircrafts(BaseApi):
         self.__bbox_cords = all_bboxes
 
     def get_response(self):
+        """Получаем данные о самолетах в воздушном пространстве стран"""
         aicraft_data = []
         for bbox in self.__bbox_cords:
             params = {
@@ -70,6 +73,7 @@ class ApiAircrafts(BaseApi):
         return aicraft_data
 
     def get_data(self):
+        """Достаем данные о самолетах"""
         aircrafts = self.get_response()
         for data in aircrafts:
             if 'states' in data and data['states']:
@@ -83,6 +87,7 @@ if __name__ == '__main__':
     if bboxes:
         airplanes = ApiAircrafts(bboxes)
         aircraft_data = airplanes.get_data()
+        print(airplanes.get_data())
 
         # Общее количество самолетов над всеми странами
         total_aircraft = 0
