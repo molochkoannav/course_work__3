@@ -2,6 +2,7 @@ from abc import ABC,abstractmethod
 import requests
 import time
 class BaseApi(ABC):
+    """Базовык класс для получения данных по api"""
     @abstractmethod
     def get_response(self):
         pass
@@ -11,6 +12,7 @@ class BaseApi(ABC):
         pass
 
 class ApiBBox(BaseApi):
+    """Класс получает данные о координатах стран"""
     def __init__(self, countries=None):
         # Если список не передан, используем стандартный
         if countries is None:
@@ -47,6 +49,7 @@ class ApiBBox(BaseApi):
         return all_bboxes
 
 class ApiAircrafts(BaseApi):
+    """Класс получает данные о самолетах в воздушных пространствах выбранных стран"""
     def __init__(self, all_bboxes):
         self.__url = "https://opensky-network.org/api/states/all"
         self.__bbox_cords = all_bboxes
@@ -74,7 +77,7 @@ class ApiAircrafts(BaseApi):
         return aircrafts
 
 if __name__ == '__main__':
-    bbox_api_default = ApiBBox()  # Использует Ireland, Greece, Malaysia, New_Zealand
+    bbox_api_default = ApiBBox()  # Используем Ireland, Greece, Malaysia, New_Zealand
     bboxes = bbox_api_default.get_data()
     print(f"Получено bbox для {len(bboxes)} стран")
     if bboxes:
