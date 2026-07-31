@@ -1,6 +1,7 @@
 from abc import ABC,abstractmethod
 import requests
 import time
+import json
 class BaseApi(ABC):
     """Базовык класс для получения данных по api"""
     @abstractmethod
@@ -70,6 +71,7 @@ class ApiAircrafts(BaseApi):
             response = requests.get(self.__url, params=params)
             response.raise_for_status()
             aicraft_data.append(response.json())
+
         return aicraft_data
 
     def get_data(self):

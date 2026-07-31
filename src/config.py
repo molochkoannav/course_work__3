@@ -1,17 +1,15 @@
-from configparser import ConfigParser
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
-def config(filename="database.ini", section="postgresql"):
-    # create a parser
-    parser = ConfigParser()
-    # read config file
-    parser.read(filename)
-    db = {}
-    if parser.has_section(section):
-        params = parser.items(section)
-        for param in params:
-            db[param[0]] = param[1]
-    else:
-        raise Exception(
-            'Section {0} is not found in the {1} file.'.format(section, filename))
-    return db
+def config():
+    """
+    Получение параметров подключения к БД из переменных окружения.
+    """
+    return {
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": os.getenv("DB_PORT", "5432"),
+        "user": os.getenv("DB_USER", "Annm"),
+        "password": os.getenv("DB_PASSWORD", "")
+    }
