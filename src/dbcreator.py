@@ -1,6 +1,5 @@
 import psycopg2
 from psycopg2.extras import execute_batch
-
 from src.config import config
 from src.utils import get_all_data
 

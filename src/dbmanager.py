@@ -6,6 +6,7 @@ load_dotenv()
 
 
 class DBManager:
+    """Класс для работы с информацией из базы данных"""
     def __init__(self, dbname="aircraft_db"):
         """Инициализация менеджера базы данных"""
         self.dbname = dbname
@@ -47,30 +48,35 @@ class DBManager:
     def get_avg_speed(self):
         """Получает среднюю скорость по самолетам."""
         cur = self.conn.cursor()
-        cur.execute("SELECT AVG(speed) FROM aircraft_states")
+        cur.execute("SELECT AVG(velocity) FROM aircraft_states")
         return cur.fetchone()[0]
 
 
     def get_aeroplanes_with_lower_speed(self):
         """Получает список всех самолетов, у которых скорость выше средней."""
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM aircraft_states WHERE speed < (SELECT AVG(speed) FROM aircraft_states)")
+        cur.execute("SELECT * FROM aircraft_states WHERE velocity < (SELECT AVG(velocity) FROM aircraft_states)")
         return cur.fetchall()
 
     def get_aeroplanes_with_keyword(self, keyword: str):
         """Получает список всех самолетов, в позывном которых содержатся переданные в метод символы."""
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM aircraft_states WHERE call_sign LIKE %s", (f"%{keyword}%",))
+        cur.execute("SELECT * FROM aircraft_states WHERE aircraft_states.callsign LIKE %s", (f"%{keyword}%",))
         return cur.fetchall()
 
-    def get_aeroplanes_with_keyword_and_country(self, keyword: str):
-        """Получает список всех самолетов, в позывном которых содержатся переданные в метод символы"""
-        cur = self.conn.cursor()
-        cur.execute(f"SELECT * FROM aircraft_states WHERE call_sign LIKE '%{keyword}%'")
-        return cur.fetchall()
 
 if __name__ == '__main__':
     db = DBManager()
+    velocity_avg = db.get_avg_speed()
+    print(velocity_avg)
     results = db.get_countries_and_aeroplanes_count()
+    res = db.get_aeroplanes_with_keyword('AAL')
+    print(res)
+    resul = db.get_aeroplanes_with_lower_speed()
+    for r in resul:
+        print(f" Самолет: {r}")
     for country, count in results:
         print(f"{country}: {count} aircraft")
+    all_planes = db.get_all_aeroplanes()
+    for plane in all_planes:
+        print(plane)
