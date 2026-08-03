@@ -1,0 +1,76 @@
+import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class DBManager:
+    def __init__(self, dbname="aircraft_db"):
+        """Инициализация менеджера базы данных"""
+        self.dbname = dbname
+        self.conn = None
+        self.connect()
+
+    def connect(self):
+        """Устанавливает соединение с базой данных"""
+        try:
+            self.conn = psycopg2.connect(
+                host=os.getenv('DB_HOST', 'localhost'),
+                database=self.dbname,
+                user=os.getenv('DB_USER', 'postgres'),
+                password=os.getenv('DB_PASSWORD', '')
+            )
+            print(f"Connected to database {self.dbname}")
+        except psycopg2.Error as e:
+            print(f"Error connecting to database: {e}")
+            raise
+
+    def get_countries_and_aeroplanes_count(self):
+        """Получает список всех стран и количество самолетов"""
+        cur = self.conn.cursor()
+        cur.execute("""
+            SELECT countries.name as country_name, COUNT(aircraft_states.id) as aircraft_count
+            FROM countries 
+            INNER JOIN aircraft_states ON countries.id = aircraft_states.country_id
+            GROUP BY countries.name
+            ORDER BY aircraft_count DESC
+        """)
+        return cur.fetchall()
+
+    def get_all_aeroplanes(self):
+        """Получает список всех воздушных судов."""
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM aircraft_states")
+        return cur.fetchall()
+
+    def get_avg_speed(self):
+        """Получает среднюю скорость по самолетам."""
+        cur = self.conn.cursor()
+        cur.execute("SELECT AVG(speed) FROM aircraft_states")
+        return cur.fetchone()[0]
+
+
+    def get_aeroplanes_with_lower_speed(self):
+        """Получает список всех самолетов, у которых скорость выше средней."""
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM aircraft_states WHERE speed < (SELECT AVG(speed) FROM aircraft_states)")
+        return cur.fetchall()
+
+    def get_aeroplanes_with_keyword(self, keyword: str):
+        """Получает список всех самолетов, в позывном которых содержатся переданные в метод символы."""
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM aircraft_states WHERE call_sign LIKE %s", (f"%{keyword}%",))
+        return cur.fetchall()
+
+    def get_aeroplanes_with_keyword_and_country(self, keyword: str):
+        """Получает список всех самолетов, в позывном которых содержатся переданные в метод символы"""
+        cur = self.conn.cursor()
+        cur.execute(f"SELECT * FROM aircraft_states WHERE call_sign LIKE '%{keyword}%'")
+        return cur.fetchall()
+
+if __name__ == '__main__':
+    db = DBManager()
+    results = db.get_countries_and_aeroplanes_count()
+    for country, count in results:
+        print(f"{country}: {count} aircraft")
