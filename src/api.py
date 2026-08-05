@@ -1,7 +1,29 @@
 from abc import ABC,abstractmethod
 import requests
 import time
-import json
+import logging
+import os
+from pathlib import Path
+from datetime import datetime
+from src.logger import Logger
+
+
+project_root = Path(__file__).parent.parent
+logs_dir = project_root / 'logs'
+logs_dir.mkdir(exist_ok=True)
+log_filename = logs_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
+
+Logger.configure(
+    console_output=False,
+    level=logging.DEBUG,
+    log_file=str(log_filename),
+    format_str='%(asctime)s - %(funcName)s - %(pathname)s - %(levelname)s - %(message)s'
+)
+
+
+log = Logger(__name__)
+
+
 class BaseApi(ABC):
     """Базовык класс для получения данных по api"""
     @abstractmethod
@@ -36,7 +58,7 @@ class ApiBBox(BaseApi):
         for country in countries:
             self.__params['country'] = country
             response = requests.get(self.__url,params=self.__params,  headers=self.__headers)
-
+            log.info("Данные получены")
             response.raise_for_status()
             data_cords.append(response.json())
             time.sleep(1)
@@ -49,6 +71,7 @@ class ApiBBox(BaseApi):
         responses = self.get_response()
         for response in responses:
             all_bboxes.append(response[0]['boundingbox'])
+            log.info(f"Получено bbox для {len(all_bboxes)} стран")
         return all_bboxes
 
 class ApiAircrafts(BaseApi):
@@ -69,6 +92,7 @@ class ApiAircrafts(BaseApi):
             }
 
             response = requests.get(self.__url, params=params)
+            log.info("Данные о самолетах получены")
             response.raise_for_status()
             aicraft_data.append(response.json())
 
@@ -79,25 +103,6 @@ class ApiAircrafts(BaseApi):
         aircrafts = self.get_response()
         for data in aircrafts:
             if 'states' in data and data['states']:
-                data['states'] = data['states'][:20]
+                data['states'] = data['states']
+        log.info(f"Получено данных о {len(aircrafts)} самолетах")
         return aircrafts
-
-if __name__ == '__main__':
-    bbox_api_default = ApiBBox()  # Используем Ireland, Greece, Malaysia, New_Zealand
-    bboxes = bbox_api_default.get_data()
-    print(f"Получено bbox для {len(bboxes)} стран")
-    if bboxes:
-        airplanes = ApiAircrafts(bboxes)
-        aircraft_data = airplanes.get_data()
-        print(airplanes.get_data())
-
-        # Общее количество самолетов над всеми странами
-        total_aircraft = 0
-        for i, data in enumerate(aircraft_data):
-            states = data.get('states')
-            if states:
-                count = len(states)
-                total_aircraft += count
-                print(f"Страна {i + 1}: {count} самолетов")
-
-        print(f"Всего самолетов над всеми странами: {total_aircraft}")

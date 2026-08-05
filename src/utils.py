@@ -1,4 +1,26 @@
 from src.api import ApiBBox,ApiAircrafts
+import logging
+import os
+from pathlib import Path
+from datetime import datetime
+from src.logger import Logger
+
+
+project_root = Path(__file__).parent.parent
+logs_dir = project_root / 'logs'
+logs_dir.mkdir(exist_ok=True)
+log_filename = logs_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
+
+Logger.configure(
+    console_output=False,
+    level=logging.DEBUG,
+    log_file=str(log_filename),
+    format_str='%(asctime)s - %(funcName)s - %(pathname)s - %(levelname)s - %(message)s'
+)
+
+
+log = Logger(__name__)
+
 
 
 def get_all_data():
@@ -21,16 +43,8 @@ def get_all_data():
         for plane in region
         if plane[1].strip()
     ]
-
+    log.info("Получены данные по странам")
+    log.info("Получены позывные сигналы")
     return countries_data, aircrafts_data, call_signs
 
 
-if __name__ == '__main__':
-    countries_data, aircrafts_data, call_signs = get_all_data()
-
-    print("Данные по странам:")
-    print(countries_data)
-    print("\nДанные по самолетам:")
-    print(aircrafts_data)
-    print("\nПозывные сигналы:")
-    print(call_signs)

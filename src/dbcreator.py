@@ -2,6 +2,27 @@ import psycopg2
 from psycopg2.extras import execute_batch
 from src.config import config
 from src.utils import get_all_data
+import logging
+import os
+from pathlib import Path
+from datetime import datetime
+from src.logger import Logger
+
+
+project_root = Path(__file__).parent.parent
+logs_dir = project_root / 'logs'
+logs_dir.mkdir(exist_ok=True)
+log_filename = logs_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
+
+Logger.configure(
+    console_output=False,
+    level=logging.DEBUG,
+    log_file=str(log_filename),
+    format_str='%(asctime)s - %(funcName)s - %(pathname)s - %(levelname)s - %(message)s'
+)
+
+
+log = Logger(__name__)
 
 
 def create_database(database_name: str):
@@ -24,10 +45,10 @@ def create_database(database_name: str):
         """, (database_name,))
 
         cur.execute(f"DROP DATABASE {database_name}")
-        print(f"База данных {database_name} удалена")
+        log.info(f"База данных {database_name} удалена")
 
     cur.execute(f"CREATE DATABASE {database_name}")
-    print(f"База данных {database_name} создана")
+    log.info(f"База данных {database_name} создана")
 
     cur.close()
     conn.close()
@@ -73,7 +94,7 @@ def create_database(database_name: str):
 
     conn.commit()
     conn.close()
-    print("Таблицы успешно созданы")
+    log.info("Таблицы успешно созданы")
 
 
 def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
@@ -94,7 +115,7 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
 
         for country_name, bbox in countries_data.items():
             if not bbox or len(bbox) < 4:
-                print(f"Пропускаем {country_name}: нет координат")
+                log.info(f"Пропускаем {country_name}: нет координат")
                 continue
 
             bbox_float = [
@@ -111,10 +132,10 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
                 country_id = existing[0]
                 cur.execute("""
                     UPDATE countries 
-                    SET bounding_box = %s, updated_at = NOW() 
+                    SET bounding_box = %s
                     WHERE id = %s
                 """, (bbox_float, country_id))
-                print(f"Обновлена: {country_name}")
+                log.info(f"Обновлена: {country_name}")
             else:
                 cur.execute("""
                     INSERT INTO countries (name, bounding_box) 
@@ -122,12 +143,12 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
                     RETURNING id
                 """, (country_name, bbox_float))
                 country_id = cur.fetchone()[0]
-                print(f"Добавлена: {country_name}")
+                log.info(f"Добавлена: {country_name}")
 
             country_ids[country_name] = country_id
 
         conn.commit()
-        print(f"Сохранено стран: {len(country_ids)}")
+        log.info(f"Сохранено стран: {len(country_ids)}")
 
         insert_query = """
             INSERT INTO aircraft_states (
@@ -145,7 +166,7 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
 
         for country_name, states in aircraft_data.items():
             if country_name not in country_ids:
-                print(f"Страна {country_name} не найдена, пропускаем")
+                log.info(f"Страна {country_name} не найдена, пропускаем")
                 continue
 
             country_id = country_ids[country_name]
@@ -183,14 +204,14 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
             if states_to_insert:
                 execute_batch(cur, insert_query, states_to_insert)
                 total_saved += len(states_to_insert)
-                print(f"{country_name}: сохранено {len(states_to_insert)} самолетов")
+                log.info(f"{country_name}: сохранено {len(states_to_insert)} самолетов")
 
         conn.commit()
-        print(f"Всего сохранено: {total_saved} записей")
+        log.info(f"Всего сохранено: {total_saved} записей")
         return total_saved
 
     except psycopg2.Error as e:
-        print(f"Ошибка: {e}")
+        log.error(f"Ошибка: {e}")
         if conn:
             conn.rollback()
         return 0
