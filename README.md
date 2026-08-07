@@ -32,37 +32,39 @@ DB_CONFIG = {
 
 ### Структура базы данных
 # Таблица countries
+|Поле	|Тип   	|Описание|
+|---	|---	|---|
+|id	|BIGSERIAL PRIMARY KEY	|Уникальный идентификатор|
+|name	|VARCHAR(100)	|Название страны|
+|iso_code	|VARCHAR(10)	|Код страны (ISO)|
+|bounding box	|[]	|Географические координаты bounding box страны|
+|created_at	|TIMESTAMP WITH TIME ZONE DEFAULT NOW()	|Время создания записи|
 
-id SERIAL PRIMARY KEY	Уникальный идентификатор
-name VARCHAR(100)	Название страны
-iso_code VARCHAR(10)	Код страны (ISO)
-bounding box []	Географические координаты bounding box страны
-created_at	TIMESTAMP WITH TIME ZONE DEFAULT NOW()	Время создания записи
 
 # Таблица aircrafts_states
 
-Поле	Тип   	Описание
-iПоле	Тип	Описание
-id	BIGSERIAL PRIMARY KEY	Уникальный идентификатор
-icao24	VARCHAR(10) NOT NULL	ICAO-адрес самолета
-callsign	VARCHAR(10)	Позывной
-origin_country	VARCHAR(255) NOT NULL	Страна происхождения
-time_position	INTEGER	Время позиции (timestamp)
-last_contact	INTEGER NOT NULL	Время последнего контакта (timestamp)
-longitude	FLOAT	Долгота
-latitude	FLOAT	Широта
-baro_altitude	FLOAT	Барометрическая высота
-on_ground	BOOLEAN	На земле
-velocity	FLOAT	Скорость (м/с)
-true_track	FLOAT	Истинный курс
-vertical_rate	FLOAT	Вертикальная скорость
-geo_altitude	FLOAT	Геодезическая высота
-squawk	VARCHAR(10)	Код Squawk
-spi	BOOLEAN	SPI (Special Position Indicator)
-position_source	INTEGER	Источник позиции
-category	INTEGER	Категория воздушного судна
-country_id	INTEGER REFERENCES countries(id) ON DELETE SET NULL	Внешний ключ к таблице countries
-retrieved_at	TIMESTAMP WITH TIME ZONE DEFAULT NOW()	Время получения записи
+|Поле	|Тип   	|Описание|
+|---	|---	|---|
+|id	|BIGSERIAL PRIMARY KEY	|Уникальный идентификатор|
+|icao24	|VARCHAR(10) NOT NULL	|ICAO-адрес самолета|
+|callsign	|VARCHAR(10)	|Позывной|
+|origin_country	|VARCHAR(255) NOT NULL	|Страна происхождения|
+|time_position	|INTEGER	|Время позиции (timestamp)|
+|last_contact	|INTEGER NOT NULL	|Время последнего контакта (timestamp)|
+|longitude	|FLOAT	|Долгота|
+|latitude	|FLOAT	|Широта|
+|baro_altitude	|FLOAT	|Барометрическая высота|
+|on_ground	|BOOLEAN	|На земле|
+|velocity	|FLOAT	|Скорость (м/с)|
+|true_track	|FLOAT	|Истинный курс|
+|vertical_rate	|FLOAT	|Вертикальная скорость|
+|geo_altitude	|FLOAT	|Геодезическая высота|
+|squawk	|VARCHAR(10)	|Код Squawk|
+|spi	|BOOLEAN	|SPI (Special Position Indicator)|
+|position_source	|INTEGER	|Источник позиции|
+|category	|INTEGER	|Категория воздушного судна|
+|country_id	|INTEGER REFERENCES countries(id) ON DELETE SET NULL	|Внешний ключ к таблице countries|
+|retrieved_at	|TIMESTAMP WITH TIME ZONE DEFAULT NOW()	|Время получения записи|
 
 ## Модули проекта
 # API модули (api)
@@ -97,14 +99,16 @@ DBCreator
 DBManager
 Основной класс для работы с данными:
 
-Метод	Описание
-get_countries_and_aeroplanes_count()	Получает список всех стран и количество самолетов в их воздушном пространстве
-get_all_aeroplanes()	Получает список всех воздушных судов
-get_avg_speed()	Вычисляет среднюю скорость всех самолетов
-get_aeroplanes_with_higher_speed()	Возвращает самолеты со скоростью выше средней
-get_aeroplanes_with_keyword(keyword)	Ищет самолеты по ключевому слову в позывном (например, 'ACA' для Air Canada)
+|Метод	|Описание|
+|---	|---|
+|get_countries_and_aeroplanes_count()	|Получает список всех стран|
+|get_all_aeroplanes()	|Получает список всех самолетов|
+|get_avg_speed()	|Вычисляет среднюю скорость всех самолетов|
+|get_aeroplanes_with_higher_speed()	|Возвращает самолеты со скоростью выше средней|
+|get_aeroplanes_with_keyword(keyword)	|Ищет самолеты по ключевому слову в позывном (например, 'ACA' для Air Canada)|
 
-4. Логирование (logging)
+
+5. Логирование (logging)
 Logger
 Настройка логирования для всех модулей
 Сохранение логов в файл 
