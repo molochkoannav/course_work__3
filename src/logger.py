@@ -1,6 +1,5 @@
 import logging
 import sys
-import os
 from typing import Optional
 
 
@@ -10,6 +9,7 @@ class Logger:
     Каждый экземпляр соответствует отдельному логгеру с именем (__name__ модуля).
     Настройка форматирования и обработчиков производится однократно через метод configure().
     """
+
     _configured = False
 
     def __init__(self, name: str, level: int = logging.INFO):
@@ -17,11 +17,13 @@ class Logger:
         self.logger.setLevel(level)
 
     @classmethod
-    def configure(cls,
-                  level: int = logging.INFO,
-                  log_file: Optional[str] = None,
-                  format_str: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                  console_output: bool = True):
+    def configure(
+        cls,
+        level: int = logging.INFO,
+        log_file: Optional[str] = None,
+        format_str: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        console_output: bool = True,
+    ):
         if cls._configured:
             return
         cls._configured = True
@@ -42,7 +44,7 @@ class Logger:
             logging.root.addHandler(console_handler)
 
         if log_file:
-            file_handler = logging.FileHandler(log_file, encoding='utf-8')
+            file_handler = logging.FileHandler(log_file, encoding="utf-8")
             file_handler.setFormatter(formatter)
             logging.root.addHandler(file_handler)
 

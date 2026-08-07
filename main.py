@@ -1,7 +1,9 @@
+import logging
 from datetime import datetime
 from pathlib import Path
-import logging
-from src.dbcreator import create_database, save_data_to_db
+
+from src.dbcreator import create_database
+from src.dbcreator import save_data_to_db
 from src.dbmanager import DBManager
 from src.logger import Logger
 from src.utils import get_all_data

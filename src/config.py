@@ -1,7 +1,9 @@
 import os
+
 from dotenv import load_dotenv
 
 load_dotenv()
+
 
 def config():
     """
@@ -11,5 +13,5 @@ def config():
         "host": os.getenv("DB_HOST", "localhost"),
         "port": os.getenv("DB_PORT", "5432"),
         "user": os.getenv("DB_USER", "annm"),
-        "password": os.getenv("DB_PASSWORD", "")
+        "password": os.getenv("DB_PASSWORD", ""),
     }

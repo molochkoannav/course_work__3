@@ -1,16 +1,16 @@
+import logging
+from datetime import datetime
+from pathlib import Path
+
 import psycopg2
 from psycopg2.extras import execute_batch
-from src.config import config
-from src.utils import get_all_data
-import logging
-import os
-from pathlib import Path
-from datetime import datetime
-from src.logger import Logger
 
+from src.config import config
+from src.logger import Logger
+from src.utils import get_all_data
 
 project_root = Path(__file__).parent.parent
-logs_dir = project_root / 'logs'
+logs_dir = project_root / "logs"
 logs_dir.mkdir(exist_ok=True)
 log_filename = logs_dir / f"{datetime.now().strftime('%Y-%m-%d')}.log"
 
@@ -18,7 +18,7 @@ Logger.configure(
     console_output=False,
     level=logging.DEBUG,
     log_file=str(log_filename),
-    format_str='%(asctime)s - %(funcName)s - %(pathname)s - %(levelname)s - %(message)s'
+    format_str="%(asctime)s - %(funcName)s - %(pathname)s - %(levelname)s - %(message)s",
 )
 
 
@@ -28,8 +28,8 @@ log = Logger(__name__)
 def create_database(database_name: str):
     """Создание базы данных и таблиц для сохранения данных о странах и самолетах"""
     params = config()
-    params = {k: str(v).encode('ascii', 'ignore').decode('ascii') for k, v in params.items()}
-    conn = psycopg2.connect(dbname='postgres', **params)
+    params = {k: str(v).encode("ascii", "ignore").decode("ascii") for k, v in params.items()}
+    conn = psycopg2.connect(dbname="postgres", **params)
     conn.autocommit = True
     cur = conn.cursor()
 
@@ -37,12 +37,15 @@ def create_database(database_name: str):
     exists = cur.fetchone()
 
     if exists:
-        cur.execute("""
+        cur.execute(
+            """
             SELECT pg_terminate_backend(pg_stat_activity.pid)
             FROM pg_stat_activity
             WHERE pg_stat_activity.datname = %s
             AND pid <> pg_backend_pid()
-        """, (database_name,))
+        """,
+            (database_name,),
+        )
 
         cur.execute(f"DROP DATABASE {database_name}")
         log.info(f"База данных {database_name} удалена")
@@ -97,12 +100,11 @@ def create_database(database_name: str):
     log.info("Таблицы успешно созданы")
 
 
-def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
+def save_data_to_db(countries_data, aircraft_data, database_name="aircraft_db"):
     """Сохранение данных о странах и самолетах в базу данных."""
 
-
     params = config()
-    params = {k: str(v).encode('ascii', 'ignore').decode('ascii') for k, v in params.items()}
+    params = {k: str(v).encode("ascii", "ignore").decode("ascii") for k, v in params.items()}
 
     conn = None
     cur = None
@@ -118,30 +120,31 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
                 log.info(f"Пропускаем {country_name}: нет координат")
                 continue
 
-            bbox_float = [
-                float(bbox[2]),
-                float(bbox[0]),
-                float(bbox[3]),
-                float(bbox[1])
-            ]
+            bbox_float = [float(bbox[2]), float(bbox[0]), float(bbox[3]), float(bbox[1])]
 
             cur.execute("SELECT id FROM countries WHERE name = %s", (country_name,))
             existing = cur.fetchone()
 
             if existing:
                 country_id = existing[0]
-                cur.execute("""
-                    UPDATE countries 
+                cur.execute(
+                    """
+                    UPDATE countries
                     SET bounding_box = %s
                     WHERE id = %s
-                """, (bbox_float, country_id))
+                """,
+                    (bbox_float, country_id),
+                )
                 log.info(f"Обновлена: {country_name}")
             else:
-                cur.execute("""
-                    INSERT INTO countries (name, bounding_box) 
-                    VALUES (%s, %s) 
+                cur.execute(
+                    """
+                    INSERT INTO countries (name, bounding_box)
+                    VALUES (%s, %s)
                     RETURNING id
-                """, (country_name, bbox_float))
+                """,
+                    (country_name, bbox_float),
+                )
                 country_id = cur.fetchone()[0]
                 log.info(f"Добавлена: {country_name}")
 
@@ -194,12 +197,28 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
                 position_source = state[16] if len(state) > 16 else None
                 category = state[17] if len(state) > 17 else None
 
-                states_to_insert.append((
-                    icao24, callsign, origin_country, time_position, last_contact,
-                    longitude, latitude, baro_altitude, on_ground, velocity,
-                    true_track, vertical_rate, geo_altitude, squawk, spi,
-                    position_source, category, country_id
-                ))
+                states_to_insert.append(
+                    (
+                        icao24,
+                        callsign,
+                        origin_country,
+                        time_position,
+                        last_contact,
+                        longitude,
+                        latitude,
+                        baro_altitude,
+                        on_ground,
+                        velocity,
+                        true_track,
+                        vertical_rate,
+                        geo_altitude,
+                        squawk,
+                        spi,
+                        position_source,
+                        category,
+                        country_id,
+                    )
+                )
 
             if states_to_insert:
                 execute_batch(cur, insert_query, states_to_insert)
@@ -222,7 +241,8 @@ def save_data_to_db(countries_data, aircraft_data, database_name='aircraft_db'):
         if conn:
             conn.close()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     create_database("aircraft_db")
     print("Database and tables created successfully")
 
